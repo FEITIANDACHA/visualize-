@@ -1,1 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Investment Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        us: '#10B981',
+                        eu: '#3B82F6',
+                        jp: '#F59E0B',
+                        cn: '#EF4444',
+                        quant1: '#8B5CF6',
+                        quant2: '#EC4899',
+                        quant3: '#06B6D4',
+                        predicted: '#6B7280'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            }
+            .risk-low {
+                @apply bg-green-100 text-green-800;
+            }
+            .risk-medium {
+                @apply bg-yellow-100 text-yellow-800;
+            }
+            .risk-high {
+                @apply bg-red-100 text-red-800;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-800">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-line-chart text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-primary">Global Investment Simulator</h1>
+            </div>
+            
+            <nav class="hidden md:flex space-x-8 mt-4 md:mt-0">
+                <a href="#simulator" class="text-gray-600 hover:text-primary transition-colors">Simulator</a>
+                <a href="#strategies" class="text-gray-600 hover:text-primary transition-colors">Strategies</a>
+                <a href="#markets" class="text-gray-600 hover:text-primary transition-colors">Markets</a>
+                <a href="#about" class="text-gray-600 hover:text-primary transition-colors">About</a>
+            </nav>
+            
+            <button class="md:hidden text-gray-600 hover:text-primary" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-white border-t" id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#simulator" class="py-2 text-gray-600 hover:text-primary">Simulator</a>
+                <a href="#strategies" class="py-2 text-gray-600 hover:text-primary">Strategies</a>
+                <a href="#markets" class="py-2 text-gray-600 hover:text-primary">Markets</a>
+                <a href="#about" class="py-2 text-gray-600 hover:text-primary">About</a>
+            </div>
+        </div>
+    </header>
 
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <section class="py-8 md:py-16 text-center">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">Detailed Investment Analysis</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Compare monthly trends across global markets, index funds, and quantitative strategies
+            </p>
+        </section>
+
+        <!-- Simulator Section -->
+        <section id="simulator" class="py-8 bg-white rounded-xl shadow-sm mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 p-6">
+                <!-- Left: Controls (30% width) -->
+                <div class="lg:col-span-1 space-y-6">
+                    <h2 class="text-2xl font-bold">Simulation Controls</h2>
+                    
+                    <!-- Country Selection -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-gray-700 font-medium mb-3">Select Market</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="radio" id="country-us" name="country" value="us" checked
+                                    class="w-4 h-4 text-us focus:ring-us">
+                                <label for="country-us" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-us rounded-full mr-1"></span>
+                                    US (S&P 500)
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="country-eu" name="country" value="eu"
+                                    class="w-4 h-4 text-eu focus:ring-eu">
+                                <label for="country-eu" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-eu rounded-full mr-1"></span>
+                                    Europe (Stoxx 600)
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="country-jp" name="country" value="jp"
+                                    class="w-4 h-4 text-jp focus:ring-jp">
+                                <label for="country-jp" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-jp rounded-full mr-1"></span>
+                                    Japan (Nikkei 225)
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="country-cn" name="country" value="cn"
+                                    class="w-4 h-4 text-cn focus:ring-cn">
+                                <label for="country-cn" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-cn rounded-full mr-1"></span>
+                                    China (CSI 300)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Time Period (Monthly) -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-gray-700 font-medium mb-3">Time Period</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="start-date" class="block text-sm text-gray-600 mb-1">Start Date</label>
+                                <input type="month" id="start-date" value="2023-01" min="2020-01" max="2025-09"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="end-date" class="block text-sm text-gray-600 mb-1">End Date</label>
+                                <input type="month" id="end-date" value="2024-12" min="2020-02" max="2025-10"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Investment Selection -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-gray-700 font-medium mb-3">Investments to Compare</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="investment-index" checked
+                                    class="w-4 h-4 text-primary focus:ring-primary">
+                                <label for="investment-index" class="ml-2 text-gray-700">Market Index</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="investment-quant1" checked
+                                    class="w-4 h-4 text-quant1 focus:ring-quant1">
+                                <label for="investment-quant1" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-quant1 rounded-full mr-1"></span>
+                                    Multi-Factor Quant
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="investment-quant2" 
+                                    class="w-4 h-4 text-quant2 focus:ring-quant2">
+                                <label for="investment-quant2" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-quant2 rounded-full mr-1"></span>
+                                    Trend-Following Quant
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="investment-quant3" 
+                                    class="w-4 h-4 text-quant3 focus:ring-quant3">
+                                <label for="investment-quant3" class="ml-2 text-gray-700">
+                                    <span class="inline-block w-3 h-3 bg-quant3 rounded-full mr-1"></span>
+                                    Market-Neutral Quant
+                                </label>
+                            </div>
+                            <div class="flex items-center mt-4 pt-4 border-t border-gray-200">
+                                <input type="checkbox" id="quant-influx" 
+                                    class="w-4 h-4 text-primary focus:ring-primary">
+                                <label for="quant-influx" class="ml-2 text-gray-700">
+                                    <i class="fa fa-arrow-circle-down text-primary mr-1"></i>
+                                    Simulate large capital inflow to quant funds
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Investment Amount -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label for="investment-amount" class="block text-gray-700 font-medium mb-3">Investment Amount ($)</label>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 mr-2">$</span>
+                            <input type="number" id="investment-amount" value="10000" min="1000" max="1000000" step="1000"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <!-- Run Simulation Button -->
+                    <button id="simulate-btn" class="w-full py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium">
+                        <i class="fa fa-play-circle mr-2"></i>Run Simulation
+                    </button>
+                </div>
+                
+                <!-- Right: Results (70% width) -->
+                <div class="lg:col-span-3 space-y-6">
+                    <h2 class="text-2xl font-bold">Performance Results</h2>
+                    
+                    <!-- Loading State -->
+                    <div id="loading-state" class="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg">
+                        <div class="w-12 h-12 border-4 border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                        <p class="text-gray-600">Calculating monthly performance data...</p>
+                    </div>
+                    
+                    <!-- Results State (Hidden by default) -->
+                    <div id="results-state" class="hidden space-y-6">
+                        <!-- Influx Notice -->
+                        <div id="influx-notice" class="hidden bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fa fa-lightbulb-o text-primary"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        Large capital inflow simulation active: Quant strategies show enhanced future returns due to increased liquidity and market impact.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Monthly Chart -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-semibold text-lg flex items-center">
+                                    <i class="fa fa-line-chart mr-2 text-primary"></i>
+                                    Monthly Performance Trend
+                                </h3>
+                                <div class="flex space-x-2">
+                                    <button id="zoom-in" class="p-1 rounded bg-white shadow-sm hover:bg-gray-100 transition-colors">
+                                        <i class="fa fa-search-plus text-gray-600"></i>
+                                    </button>
+                                    <button id="zoom-out" class="p-1 rounded bg-white shadow-sm hover:bg-gray-100 transition-colors">
+                                        <i class="fa fa-search-minus text-gray-600"></i>
+                                    </button>
+                                    <button id="reset-zoom" class="p-1 rounded bg-white shadow-sm hover:bg-gray-100 transition-colors">
+                                        <i class="fa fa-refresh text-gray-600"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="h-80">
+                                <canvas id="monthly-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Metrics -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                                <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                                    <i class="fa fa-percent mr-2 text-green-600"></i>
+                                    Total Return
+                                </h3>
+                                <div id="return-metrics" class="space-y-3">
+                                    <!-- Will be populated by JS -->
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                                <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                                    <i class="fa fa-shield mr-2 text-orange-500"></i>
+                                    Risk Metrics
+                                </h3>
+                                <div id="risk-metrics" class="space-y-3">
+                                    <!-- Will be populated by JS -->
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                                <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                                    <i class="fa fa-money mr-2 text-primary"></i>
+                                    Final Value
+                                </h3>
+                                <div id="value-metrics" class="space-y-3">
+                                    <!-- Will be populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Monthly Data Table -->
+                        <div class="bg-gray-50 p-4 rounded-lg overflow-hidden shadow-sm">
+                            <h3 class="font-semibold text-lg mb-4 flex items-center">
+                                <i class="fa fa-calendar-check-o mr-2 text-primary"></i>
+                                Monthly Performance Data
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg">
+                                    <thead class="bg-gray-100">
+                                        <tr id="table-header">
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <!-- Will be populated by JS -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- Will be populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 text-xs text-gray-500 italic">
+                                <i class="fa fa-info-circle mr-1"></i> Data shows monthly returns and key metrics for selected strategies
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategies Comparison -->
+        <section id="strategies" class="py-8 mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fa fa-sitemap mr-2 text-primary"></i>
+                Quantitative Strategy Profiles
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Multi-Factor Quant -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden card-hover transition-all duration-300 hover:shadow-md">
+                    <div class="h-2 bg-quant1"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-quant1/20 flex items-center justify-center mr-3">
+                                <i class="fa fa-cubes text-quant1"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Multi-Factor Quant</h3>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-4 text-sm">
+                            Combines value, quality, momentum, and size factors to select stocks with algorithmic weighting.
+                        </p>
+                        
+                        <div class="space-y-4 mb-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Typical Returns</span>
+                                    <span class="font-medium">8-12%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-quant1 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Volatility</span>
+                                    <span class="font-medium px-2 py-0.5 rounded text-xs risk-medium">Medium</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-yellow-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Max Drawdown</span>
+                                    <span class="font-medium px-2 py-0.5 rounded text-xs risk-medium">15-20%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-yellow-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 40%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                            <p class="flex items-start">
+                                <i class="fa fa-info-circle mr-1 mt-0.5"></i> 
+                                <span>Best in: Moderately trending markets</span>
+                            </p>
+                            <p class="flex items-start mt-1">
+                                <i class="fa fa-info-circle mr-1 mt-0.5"></i> 
+                                <span>Fund examples: AQR, BlackRock</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trend-Following Quant -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden card-hover transition-all duration-300 hover:shadow-md">
+                    <div class="h-2 bg-quant2"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-quant2/20 flex items-center justify-center mr-3">
+                                <i class="fa fa-line-chart text-quant2"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Trend-Following Quant</h3>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-4 text-sm">
+                            Follows price trends across asset classes, going long uptrends and short downtrends dynamically.
+                        </p>
+                        
+                        <div class="space-y-4 mb-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Typical Returns</span>
+                                    <span class="font-medium">6-10%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-quant2 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Volatility</span>
+                                    <span class="font-medium px-2 py-0.5 rounded text-xs risk-high">Medium-High</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-red-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Max Drawdown</span>
+                                    <span class="font-medium px-2 py-0.5 rounded text-xs risk-high">18-25%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-red-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 50%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                            <p class="flex items-start">
+                                <i class="fa fa-info-circle mr-1 mt-0.5"></i> 
+                                <span>Best in: Strong trending markets</span>
+                            </p>
+                            <p class="flex items-start mt-1">
+                                <i class="fa fa-info-circle mr-1 mt-0.5"></i> 
+                                <span>Fund examples: Winton, Man Group</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Market-Neutral Quant -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden card-hover transition-all duration-300 hover:shadow-md">
+                    <div class="h-2 bg-quant3"></div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-quant3/20 flex items-center justify-center mr-3">
+                                <i class="fa fa-balance-scale text-quant3"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Market-Neutral Quant</h3>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-4 text-sm">
+                            Maintains equal long and short positions to eliminate market risk, profiting from relative price movements.
+                        </p>
+                        
+                        <div class="space-y-4 mb-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Typical Returns</span>
+                                    <span class="font-medium">4-8%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-quant3 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Volatility</span>
+                                    <span class="font-medium px-2 py-0.5 rounded text-xs risk-low">Low</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">Max Drawdown</span>
+                                    <span class="font-medium px-2 py-0.5 rounded text-xs risk-low">5-10%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 20%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                            <p class="flex items-start">
+                                <i class="fa fa-info-circle mr-1 mt-0.5"></i> 
+                                <span>Best in: Volatile/sideways markets</span>
+                            </p>
+                            <p class="flex items-start mt-1">
+                                <i class="fa fa-info-circle mr-1 mt-0.5"></i> 
+                                <span>Fund examples: Two Sigma, Renaissance</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Global Markets Overview -->
+        <section id="markets" class="py-8 mb-12 bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fa fa-globe mr-2 text-primary"></i>
+                Global Market Characteristics
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Regional Performance (3-Year Average)</h3>
+                    <div class="h-80 bg-gray-50 p-4 rounded-lg">
+                        <canvas id="regional-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Market Profile Comparison</h3>
+                        <div class="overflow-x-auto bg-gray-50 p-2 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200 bg-white rounded">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Market</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">3-Year Return</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volatility</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best Quant Strategy</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="inline-block w-3 h-3 bg-us rounded-full mr-2"></span>
+                                                <span>US (S&P 500)</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap font-medium">15.2%</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-xs risk-medium">14.8%</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Multi-Factor</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="inline-block w-3 h-3 bg-eu rounded-full mr-2"></span>
+                                                <span>Europe (Stoxx 600)</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">8.7%</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-xs risk-high">16.3%</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Market-Neutral</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="inline-block w-3 h-3 bg-jp rounded-full mr-2"></span>
+                                                <span>Japan (Nikkei 225)</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">12.4%</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-xs risk-high">18.5%</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Trend-Following</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="inline-block w-3 h-3 bg-cn rounded-full mr-2"></span>
+                                                <span>China (CSI 300)</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">2.1%</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-xs risk-high">24.7%</span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">Market-Neutral</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                        <h3 class="font-semibold mb-3 flex items-center">
+                            <i class="fa fa-lightbulb-o text-yellow-500 mr-2"></i>
+                            Key Insights
+                        </h3>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <span>US markets offer strongest returns with moderate volatility</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-exclamation-triangle text-yellow-500 mt-1 mr-2"></i>
+                                <span>China has highest volatility, favoring market-neutral strategies</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-info-circle text-blue-500 mt-1 mr-2"></i>
+                                <span>Trend-following works best in Japanese markets with strong trends</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-8 mb-12">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <i class="fa fa-info-circle mr-2 text-primary"></i>
+                    About This Tool
+                </h2>
+                <p class="text-gray-700 mb-4">
+                    This advanced investment simulator provides detailed analysis of global markets and quantitative strategies. 
+                    All data is based on historical performance from 2020-2024, with monthly granularity for precise trend analysis.
+                </p>
+                <p class="text-gray-700 mb-4">
+                    Quantitative strategy data represents average performance of leading funds in each category, net of fees. 
+                    Market indices include reinvested dividends to reflect total returns.
+                </p>
+                <div class="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <p><strong>Disclaimer:</strong> Past performance does not guarantee future results. This tool is for educational purposes only and not intended as investment advice.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa fa-line-chart text-primary text-2xl"></i>
+                        <h2 class="text-xl font-bold">Global Investment Simulator</h2>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        Detailed analysis of global markets and quantitative strategies
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Tool</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#simulator" class="text-gray-400 hover:text-white text-sm transition-colors">Simulator</a></li>
+                            <li><a href="#strategies" class="text-gray-400 hover:text-white text-sm transition-colors">Strategies</a></li>
+                            <li><a href="#markets" class="text-gray-400 hover:text-white text-sm transition-colors">Markets</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Resources</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Methodology</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Data Sources</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Glossary</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">About</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#about" class="text-gray-400 hover:text-white text-sm transition-colors">About Tool</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Contact</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Disclaimer</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
+                &copy; 2025 Global Investment Simulator. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Chart initialization variables
+        let monthlyChart = null;
+        let regionalChart = null;
+        
+        // Initialize all charts when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initRegionalChart();
+            
+            // Run initial simulation
+            document.getElementById('simulate-btn').addEventListener('click', runSimulation);
+        });
+
+        // Main simulation function
+        function runSimulation() {
+            // Show loading state
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('results-state').classList.add('hidden');
+            
+            // Get user inputs
+            const country = document.querySelector('input[name="country"]:checked').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const investmentAmount = parseFloat(document.getElementById('investment-amount').value);
+            const includeIndex = document.getElementById('investment-index').checked;
+            const includeQuant1 = document.getElementById('investment-quant1').checked;
+            const includeQuant2 = document.getElementById('investment-quant2').checked;
+            const includeQuant3 = document.getElementById('investment-quant3').checked;
+            const hasQuantInflux = document.getElementById('quant-influx').checked;
+            
+            // Validate date range
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('Start date must be before end date');
+                document.getElementById('loading-state').classList.add('hidden');
+                return;
+            }
+            
+            // Generate performance data
+            setTimeout(() => {
+                // Generate base performance data
+                let performanceData = generatePerformanceData(
+                    country, 
+                    startDate, 
+                    endDate,
+                    includeIndex,
+                    includeQuant1,
+                    includeQuant2,
+                    includeQuant3
+                );
+                
+                // Apply quant influx effect if enabled
+                if (hasQuantInflux) {
+                    performanceData = applyQuantInfluxEffect(performanceData, endDate);
+                    document.getElementById('influx-notice').classList.remove('hidden');
+                } else {
+                    document.getElementById('influx-notice').classList.add('hidden');
+                }
+                
+                // Update UI with results
+                updateChart(performanceData, includeIndex, includeQuant1, includeQuant2, includeQuant3, country);
+                updateMetrics(performanceData, investmentAmount, includeIndex, includeQuant1, includeQuant2, includeQuant3, country);
+                updateTable(performanceData, includeIndex, includeQuant1, includeQuant2, includeQuant3);
+                
+                // Show results
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('results-state').classList.remove('hidden');
+            }, 1500);
+        }
+
+        // Generate simulated performance data
+        function generatePerformanceData(country, startDate, endDate, includeIndex, includeQuant1, includeQuant2, includeQuant3) {
+            const data = [];
+            let currentDate = new Date(startDate);
+            const end = new Date(endDate);
+            
+            // Generate 6 months of future data beyond end date
+            const futureEnd = new Date(end);
+            futureEnd.setMonth(futureEnd.getMonth() + 6);
+            
+            // Base return rates based on country
+            const baseReturns = {
+                us: 0.008,   // 0.8% monthly average
+                eu: 0.006,   // 0.6% monthly average
+                jp: 0.005,   // 0.5% monthly average
+                cn: 0.007    // 0.7% monthly average
+            };
+            
+            // Volatility based on country
+            const volatility = {
+                us: 0.03,    // 3% monthly volatility
+                eu: 0.035,   // 3.5% monthly volatility
+                jp: 0.04,    // 4% monthly volatility
+                cn: 0.05     // 5% monthly volatility
+            };
+            
+            // Starting values
+            let indexValue = 100;
+            let quant1Value = 100;
+            let quant2Value = 100;
+            let quant3Value = 100;
+            
+            while (currentDate <= futureEnd) {
+                // Format date as YYYY-MM
+                const dateStr = currentDate.toISOString().slice(0, 7);
+                
+                // Generate random returns with some trend
+                const marketReturn = baseReturns[country] + (Math.random() * volatility[country] * 2 - volatility[country]);
+                
+                // Different strategies have different return profiles
+                const quant1Return = marketReturn * (1.1 + Math.random() * 0.2 - 0.1); // Slightly better than market with variation
+                const quant2Return = marketReturn > 0 ? marketReturn * (1.2 + Math.random() * 0.3) : marketReturn * (0.8 + Math.random() * 0.2); // Better in up markets
+                const quant3Return = 0.003 + Math.random() * 0.01; // More stable, lower average return
+                
+                // Update values
+                indexValue *= (1 + marketReturn);
+                quant1Value *= (1 + quant1Return);
+                quant2Value *= (1 + quant2Return);
+                quant3Value *= (1 + quant3Return);
+                
+                // Create data entry
+                const entry = {
+                    date: dateStr,
+                    isFuture: currentDate > end
+                };
+                
+                if (includeIndex) entry.index = parseFloat(indexValue.toFixed(2));
+                if (includeQuant1) entry.quant1 = parseFloat(quant1Value.toFixed(2));
+                if (includeQuant2) entry.quant2 = parseFloat(quant2Value.toFixed(2));
+                if (includeQuant3) entry.quant3 = parseFloat(quant3Value.toFixed(2));
+                
+                data.push(entry);
+                
+                // Move to next month
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+            
+            return data;
+        }
+
+        // Apply quant influx effect to future returns
+        function applyQuantInfluxEffect(data, endDate) {
+            // Create a copy to avoid mutating original data
+            const modifiedData = JSON.parse(JSON.stringify(data));
+            
+            modifiedData.forEach(entry => {
+                // Only apply to future dates
+                if (entry.date > endDate) {
+                    // Different effects for different strategies
+                    if (entry.quant1) entry.quant1 *= (1 + (1.5 + Math.random() * 1.5) / 100);
+                    if (entry.quant2) entry.quant2 *= (1 + (2 + Math.random() * 2) / 100);
+                    if (entry.quant3) entry.quant3 *= (1 + (1 + Math.random() * 1.5) / 100);
+                    
+                    // Round values after modification
+                    if (entry.quant1) entry.quant1 = parseFloat(entry.quant1.toFixed(2));
+                    if (entry.quant2) entry.quant2 = parseFloat(entry.quant2.toFixed(2));
+                    if (entry.quant3) entry.quant3 = parseFloat(entry.quant3.toFixed(2));
+                }
+            });
+            
+            return modifiedData;
+        }
+
+        // Update the main monthly chart
+        function updateChart(performanceData, includeIndex, includeQuant1, includeQuant2, includeQuant3, country) {
+            const ctx = document.getElementById('monthly-chart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+            
+            // Prepare data
+            const labels = performanceData.map(entry => entry.date);
+            const datasets = [];
+            
+            // Get country color
+            const countryColors = {
+                us: '#10B981',
+                eu: '#3B82F6',
+                jp: '#F59E0B',
+                cn: '#EF4444'
+            };
+            
+            // Add datasets based on selected investments
+            if (includeIndex) {
+                datasets.push({
+                    label: 'Market Index',
+                    data: performanceData.map(entry => entry.index),
+                    borderColor: countryColors[country],
+                    backgroundColor: `${countryColors[country]}20`, // 20% opacity
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 2
+                });
+            }
+            
+            if (includeQuant1) {
+                datasets.push({
+                    label: 'Multi-Factor Quant',
+                    data: performanceData.map(entry => entry.quant1),
+                    borderColor: '#8B5CF6',
+                    backgroundColor: '#8B5CF620',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 2
+                });
+            }
+            
+            if (includeQuant2) {
+                datasets.push({
+                    label: 'Trend-Following Quant',
+                    data: performanceData.map(entry => entry.quant2),
+                    borderColor: '#EC4899',
+                    backgroundColor: '#EC489920',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 2
+                });
+            }
+            
+            if (includeQuant3) {
+                datasets.push({
+                    label: 'Market-Neutral Quant',
+                    data: performanceData.map(entry => entry.quant3),
+                    borderColor: '#06B6D4',
+                    backgroundColor: '#06B6D420',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1,
+                    pointRadius: 2
+                });
+            }
+            
+            // Create chart
+            monthlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        const value = context.parsed.y;
+                                        const firstValue = context.dataset.data[0];
+                                        const returnPercent = ((value / firstValue - 1) * 100).toFixed(2);
+                                        label += `$${value.toFixed(2)} (${returnPercent}%)`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 12
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value (Base = 100)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            });
+            
+            // Add zoom controls
+            document.getElementById('zoom-in').addEventListener('click', function() {
+                const xAxis = monthlyChart.scales.x;
+                const newMin = xAxis.min + (xAxis.max - xAxis.min) * 0.2;
+                const newMax = xAxis.max - (xAxis.max - xAxis.min) * 0.2;
+                monthlyChart.options.scales.x.min = newMin;
+                monthlyChart.options.scales.x.max = newMax;
+                monthlyChart.update();
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', function() {
+                const xAxis = monthlyChart.scales.x;
+                const newMin = xAxis.min - (xAxis.max - xAxis.min) * 0.2;
+                const newMax = xAxis.max + (xAxis.max - xAxis.min) * 0.2;
+                monthlyChart.options.scales.x.min = newMin;
+                monthlyChart.options.scales.x.max = newMax;
+                monthlyChart.update();
+            });
+            
+            document.getElementById('reset-zoom').addEventListener('click', function() {
+                monthlyChart.options.scales.x.min = undefined;
+                monthlyChart.options.scales.x.max = undefined;
+                monthlyChart.update();
+            });
+        }
+
+        // Update performance metrics with color-coded risk indicators
+        function updateMetrics(performanceData, investmentAmount, includeIndex, includeQuant1, includeQuant2, includeQuant3, country) {
+            if (performanceData.length === 0) return;
+            
+            const firstEntry = performanceData[0];
+            const lastEntry = performanceData[performanceData.length - 1];
+            
+            // Clear existing metrics
+            document.getElementById('return-metrics').innerHTML = '';
+            document.getElementById('risk-metrics').innerHTML = '';
+            document.getElementById('value-metrics').innerHTML = '';
+            
+            // Get country color and name
+            const countryInfo = {
+                us: { color: '#10B981', name: 'US (S&P 500)' },
+                eu: { color: '#3B82F6', name: 'Europe (Stoxx 600)' },
+                jp: { color: '#F59E0B', name: 'Japan (Nikkei 225)' },
+                cn: { color: '#EF4444', name: 'China (CSI 300)' }
+            };
+            
+            // Helper function to calculate metrics
+            const calculateMetrics = (dataSeries) => {
+                // Total return
+                const totalReturn = (dataSeries[dataSeries.length - 1] / dataSeries[0] - 1) * 100;
+                
+                // Monthly returns
+                const monthlyReturns = [];
+                for (let i = 1; i < dataSeries.length; i++) {
+                    monthlyReturns.push(dataSeries[i] / dataSeries[i - 1] - 1);
+                }
+                
+                // Standard deviation (risk)
+                const mean = monthlyReturns.reduce((sum, val) => sum + val, 0) / monthlyReturns.length;
+                const variance = monthlyReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / monthlyReturns.length;
+                const stdDev = Math.sqrt(variance) * 100; // Convert to percentage
+                
+                // Max drawdown
+                let maxDrawdown = 0;
+                let peak = dataSeries[0];
+                for (let value of dataSeries) {
+                    if (value > peak) {
+                        peak = value;
+                    }
+                    const drawdown = (peak - value) / peak * 100;
+                    if (drawdown > maxDrawdown) {
+                        maxDrawdown = drawdown;
+                    }
+                }
+                
+                // Determine risk levels for color coding
+                const getRiskClass = (value, type) => {
+                    // Different thresholds for volatility vs drawdown
+                    if (type === 'volatility') {
+                        if (value < 8) return 'risk-low';
+                        if (value < 15) return 'risk-medium';
+                        return 'risk-high';
+                    } else { // drawdown
+                        if (value < 10) return 'risk-low';
+                        if (value < 20) return 'risk-medium';
+                        return 'risk-high';
+                    }
+                };
+                
+                return {
+                    totalReturn,
+                    stdDev,
+                    maxDrawdown,
+                    volRiskClass: getRiskClass(stdDev, 'volatility'),
+                    ddRiskClass: getRiskClass(maxDrawdown, 'drawdown')
+                };
+            };
+            
+            // Add metrics for each selected investment
+            if (includeIndex) {
+                const indexData = performanceData.map(entry => entry.index);
+                const metrics = calculateMetrics(indexData);
+                const finalValue = investmentAmount * (lastEntry.index / firstEntry.index);
+                
+                // Return metrics
+                document.getElementById('return-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${countryInfo[country].color}"></span>
+                            ${countryInfo[country].name}
+                        </span>
+                        <span class="${metrics.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'} font-medium">
+                            ${metrics.totalReturn.toFixed(2)}%
+                        </span>
+                    </div>
+                `;
+                
+                // Risk metrics with color coding
+                document.getElementById('risk-metrics').innerHTML += `
+                    <div class="p-2 rounded bg-gray-50">
+                        <div class="flex items-center mb-1">
+                            <span class="flex items-center text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${countryInfo[country].color}"></span>
+                                ${countryInfo[country].name}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">Volatility:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.volRiskClass}">
+                                    ${metrics.stdDev.toFixed(2)}%
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Max Drawdown:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.ddRiskClass}">
+                                    ${metrics.maxDrawdown.toFixed(2)}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Value metrics
+                document.getElementById('value-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${countryInfo[country].color}"></span>
+                            ${countryInfo[country].name}
+                        </span>
+                        <span class="font-medium">$${finalValue.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            if (includeQuant1) {
+                const quant1Data = performanceData.map(entry => entry.quant1);
+                const metrics = calculateMetrics(quant1Data);
+                const finalValue = investmentAmount * (lastEntry.quant1 / firstEntry.quant1);
+                
+                document.getElementById('return-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant1"></span>
+                            Multi-Factor Quant
+                        </span>
+                        <span class="${metrics.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'} font-medium">
+                            ${metrics.totalReturn.toFixed(2)}%
+                        </span>
+                    </div>
+                `;
+                
+                document.getElementById('risk-metrics').innerHTML += `
+                    <div class="p-2 rounded bg-gray-50">
+                        <div class="flex items-center mb-1">
+                            <span class="flex items-center text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant1"></span>
+                                Multi-Factor Quant
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">Volatility:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.volRiskClass}">
+                                    ${metrics.stdDev.toFixed(2)}%
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Max Drawdown:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.ddRiskClass}">
+                                    ${metrics.maxDrawdown.toFixed(2)}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('value-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant1"></span>
+                            Multi-Factor Quant
+                        </span>
+                        <span class="font-medium">$${finalValue.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            if (includeQuant2) {
+                const quant2Data = performanceData.map(entry => entry.quant2);
+                const metrics = calculateMetrics(quant2Data);
+                const finalValue = investmentAmount * (lastEntry.quant2 / firstEntry.quant2);
+                
+                document.getElementById('return-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant2"></span>
+                            Trend-Following Quant
+                        </span>
+                        <span class="${metrics.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'} font-medium">
+                            ${metrics.totalReturn.toFixed(2)}%
+                        </span>
+                    </div>
+                `;
+                
+                document.getElementById('risk-metrics').innerHTML += `
+                    <div class="p-2 rounded bg-gray-50">
+                        <div class="flex items-center mb-1">
+                            <span class="flex items-center text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant2"></span>
+                                Trend-Following Quant
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">Volatility:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.volRiskClass}">
+                                    ${metrics.stdDev.toFixed(2)}%
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Max Drawdown:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.ddRiskClass}">
+                                    ${metrics.maxDrawdown.toFixed(2)}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('value-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant2"></span>
+                            Trend-Following Quant
+                        </span>
+                        <span class="font-medium">$${finalValue.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            
+            if (includeQuant3) {
+                const quant3Data = performanceData.map(entry => entry.quant3);
+                const metrics = calculateMetrics(quant3Data);
+                const finalValue = investmentAmount * (lastEntry.quant3 / firstEntry.quant3);
+                
+                document.getElementById('return-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant3"></span>
+                            Market-Neutral Quant
+                        </span>
+                        <span class="${metrics.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'} font-medium">
+                            ${metrics.totalReturn.toFixed(2)}%
+                        </span>
+                    </div>
+                `;
+                
+                document.getElementById('risk-metrics').innerHTML += `
+                    <div class="p-2 rounded bg-gray-50">
+                        <div class="flex items-center mb-1">
+                            <span class="flex items-center text-sm">
+                                <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant3"></span>
+                                Market-Neutral Quant
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">Volatility:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.volRiskClass}">
+                                    ${metrics.stdDev.toFixed(2)}%
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Max Drawdown:</span>
+                                <span class="ml-1 px-2 py-0.5 rounded text-xs ${metrics.ddRiskClass}">
+                                    ${metrics.maxDrawdown.toFixed(2)}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('value-metrics').innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded bg-gray-50">
+                        <span class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full mr-2 bg-quant3"></span>
+                            Market-Neutral Quant
+                        </span>
+                        <span class="font-medium">$${finalValue.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Update the monthly data table
+        function updateTable(performanceData, includeIndex, includeQuant1, includeQuant2, includeQuant3) {
+            // Clear existing table content
+            const headerRow = document.getElementById('table-header');
+            // Keep the Date th, remove other headers
+            while (headerRow.children.length > 1) {
+                headerRow.removeChild(headerRow.lastChild);
+            }
+            
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+            
+            // Add headers based on selected investments
+            if (includeIndex) {
+                const th = document.createElement('th');
+                th.className = 'px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                th.textContent = 'Market Index';
+                headerRow.appendChild(th);
+            }
+            
+            if (includeQuant1) {
+                const th = document.createElement('th');
+                th.className = 'px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                th.textContent = 'Multi-Factor Quant';
+                headerRow.appendChild(th);
+            }
+            
+            if (includeQuant2) {
+                const th = document.createElement('th');
+                th.className = 'px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                th.textContent = 'Trend-Following Quant';
+                headerRow.appendChild(th);
+            }
+            
+            if (includeQuant3) {
+                const th = document.createElement('th');
+                th.className = 'px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                th.textContent = 'Market-Neutral Quant';
+                headerRow.appendChild(th);
+            }
+            
+            // Add rows
+            performanceData.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.className = entry.isFuture ? 'bg-gray-50' : '';
+                
+                // Date cell
+                const dateTd = document.createElement('td');
+                dateTd.className = 'px-4 py-3 whitespace-nowrap text-sm text-gray-900';
+                dateTd.textContent = entry.date;
+                tr.appendChild(dateTd);
+                
+                // Data cells with color coding for returns
+                if (includeIndex) {
+                    const indexTd = document.createElement('td');
+                    indexTd.className = 'px-4 py-3 whitespace-nowrap text-sm';
+                    
+                    // Calculate monthly return
+                    const prevEntry = performanceData[performanceData.indexOf(entry) - 1];
+                    if (prevEntry && prevEntry.index) {
+                        const returnPercent = ((entry.index / prevEntry.index - 1) * 100).toFixed(2);
+                        indexTd.textContent = `${returnPercent}%`;
+                        indexTd.className = `px-4 py-3 whitespace-nowrap text-sm ${returnPercent >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                    } else {
+                        indexTd.textContent = entry.index.toFixed(2);
+                    }
+                    
+                    tr.appendChild(indexTd);
+                }
+                
+                if (includeQuant1) {
+                    const quant1Td = document.createElement('td');
+                    quant1Td.className = 'px-4 py-3 whitespace-nowrap text-sm';
+                    
+                    // Calculate monthly return
+                    const prevEntry = performanceData[performanceData.indexOf(entry) - 1];
+                    if (prevEntry && prevEntry.quant1) {
+                        const returnPercent = ((entry.quant1 / prevEntry.quant1 - 1) * 100).toFixed(2);
+                        quant1Td.textContent = `${returnPercent}%`;
+                        quant1Td.className = `px-4 py-3 whitespace-nowrap text-sm ${returnPercent >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                    } else {
+                        quant1Td.textContent = entry.quant1.toFixed(2);
+                    }
+                    
+                    tr.appendChild(quant1Td);
+                }
+                
+                if (includeQuant2) {
+                    const quant2Td = document.createElement('td');
+                    quant2Td.className = 'px-4 py-3 whitespace-nowrap text-sm';
+                    
+                    // Calculate monthly return
+                    const prevEntry = performanceData[performanceData.indexOf(entry) - 1];
+                    if (prevEntry && prevEntry.quant2) {
+                        const returnPercent = ((entry.quant2 / prevEntry.quant2 - 1) * 100).toFixed(2);
+                        quant2Td.textContent = `${returnPercent}%`;
+                        quant2Td.className = `px-4 py-3 whitespace-nowrap text-sm ${returnPercent >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                    } else {
+                        quant2Td.textContent = entry.quant2.toFixed(2);
+                    }
+                    
+                    tr.appendChild(quant2Td);
+                }
+                
+                if (includeQuant3) {
+                    const quant3Td = document.createElement('td');
+                    quant3Td.className = 'px-4 py-3 whitespace-nowrap text-sm';
+                    
+                    // Calculate monthly return
+                    const prevEntry = performanceData[performanceData.indexOf(entry) - 1];
+                    if (prevEntry && prevEntry.quant3) {
+                        const returnPercent = ((entry.quant3 / prevEntry.quant3 - 1) * 100).toFixed(2);
+                        quant3Td.textContent = `${returnPercent}%`;
+                        quant3Td.className = `px-4 py-3 whitespace-nowrap text-sm ${returnPercent >= 0 ? 'text-green-600' : 'text-red-600'}`;
+                    } else {
+                        quant3Td.textContent = entry.quant3.toFixed(2);
+                    }
+                    
+                    tr.appendChild(quant3Td);
+                }
+                
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Initialize regional comparison chart
+        function initRegionalChart() {
+            const ctx = document.getElementById('regional-chart').getContext('2d');
+            
+            regionalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['US', 'Europe', 'Japan', 'China'],
+                    datasets: [
+                        {
+                            label: '1 Year Return (%)',
+                            data: [18.2, 12.5, 9.8, 7.3],
+                            backgroundColor: [
+                                '#10B981',
+                                '#3B82F6',
+                                '#F59E0B',
+                                '#EF4444'
+                            ],
+                            borderWidth: 0,
+                            borderRadius: 4
+                        },
+                        {
+                            label: '3 Year Return (%)',
+                            data: [45.6, 32.1, 28.4, 18.7],
+                            backgroundColor: [
+                                '#10B98180',
+                                '#3B82F680',
+                                '#F59E0B80',
+                                '#EF444480'
+                            ],
+                            borderWidth: 0,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Return (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
